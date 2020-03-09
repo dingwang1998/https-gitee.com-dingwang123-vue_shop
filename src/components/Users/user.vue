@@ -1,6 +1,6 @@
 <template>
-    <!-- 面包屑导航区域 -->
     <div>
+        <!-- 面包屑导航区域 -->
         <el-breadcrumb separator-class="el-icon-arrow-right">
             <el-breadcrumb-item :to="{ path: '/welcome' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item>用户管理</el-breadcrumb-item>
@@ -40,7 +40,7 @@
                             <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUserbyId(scope.row.id)"></el-button>
                             <!-- 分配角色按钮 -->
                             <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
-                                <el-button type="waring" icon="el-icon-share" size="mini"></el-button>
+                                <el-button type="waring" icon="el-icon-share" size="mini" @click="setRole(scope.row)"></el-button>
                             </el-tooltip>
                         </template>
                     </el-table-column>
@@ -101,6 +101,31 @@
             <span slot="footer" class="dialog-footer">
                 <el-button @click= "eidtDialogVisible =false">取 消</el-button>
                 <el-button type="primary" @click= "editUserInfo">确 定</el-button>
+            </span>
+        </el-dialog>
+        <!-- 分配角色对话框 -->
+        <el-dialog
+            title="提示"
+            :visible.sync="roleDialogVisible"
+            width="50%" @close= "setDialogVisibleClose" >
+            <div>
+                <p>当前的用户: {{uersInfo.username}}</p>
+                <p>当前的角色: {{uersInfo.role_name}}</p>
+                <p>分配新角色： 
+                    <!-- 下拉菜单选择器 -->
+                    <el-select v-model="selectRoleId" placeholder="请选择">
+                        <el-option
+                        v-for="item in roleslist"
+                        :key="item.id"
+                        :label="item.roleName"
+                        :value="item.id">
+                        </el-option>
+                     </el-select>
+                </p>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="roleDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveRoleinfo">确 定</el-button>
             </span>
         </el-dialog>
     </div>
@@ -180,7 +205,15 @@ export default {
                     { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' },
                     { validator: checkMobile, trigger: 'blur' }
                 ]
-            }
+            },
+            // 分配角色对话框按钮
+            roleDialogVisible:false,
+            // 拿到的用户信息
+            uersInfo:{},
+            //拿到的角色信息
+            roleslist:[],
+            // 选择器确定的value
+            selectRoleId:''
         }
     },
     created(){
@@ -300,6 +333,40 @@ export default {
             }
             this.$message.success('删除用户成功了')
             this.getUserslist()
+       },
+       //操作分配角色对话框 打开对话框
+       async  setRole(uersInfo){
+           const {data:res} = await this.$http.get('roles')
+           if(res.meta.status !==200)
+           {
+               this.$message.error('角色列表未能获取')
+           }
+            //角色信息
+            this.roleslist = res.data
+            //console.log(this.roleslist)
+                 
+            this.roleDialogVisible = true
+            this.uersInfo = uersInfo
+       },
+        // 点击确定 给用户进行分配角色
+       async saveRoleinfo(){
+           if(!this.selectRoleId) //有值取反为false
+           {
+               this.$message.error('请选择要分配的角色')
+           }
+            const {data:res}=  await this.$http.put(`users/${this.uersInfo.id}/role`,{rid:this.selectRoleId})
+            if(res.meta.status !==200)
+            {
+                this.$message.error('分配角色失败')
+            }
+            this.$message.success('分配角色成功')
+            this.getUserslist()
+            this.roleDialogVisible= false 
+       },
+        //关闭对话框 让打开对话框拿到的信息进行清空    
+       setDialogVisibleClose(){
+           this.selectRoleId ='',
+           this.userinfo = {}
        }
     }
 }

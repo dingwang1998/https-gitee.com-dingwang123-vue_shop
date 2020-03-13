@@ -47,7 +47,7 @@
             <el-cascader
                 v-model="selectedKeys"
                 :options="parentCatelist"
-                 expandTrigger= 'hover'
+                 expandTrigger= "hover"
                 :props="cascaderProps"
                 @change="handleChange">
             </el-cascader>

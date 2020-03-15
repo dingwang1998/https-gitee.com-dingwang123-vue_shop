@@ -4,3 +4,12 @@ html, body, #app{
     padding: 0;
     min-width: 1226px;
 }
+.el-step__title{
+   font-size: 13px;
+}
+.el-steps{
+    margin: 15px 0;
+}
+.ql-editor{
+    min-height: 300px;
+}
